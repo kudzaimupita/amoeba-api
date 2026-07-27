@@ -158,6 +158,7 @@ router.get('/stats', auth('admin'), tokenController.getTokenStats);
  */
 router.delete('/cleanup', auth('admin'), tokenController.cleanupExpiredTokens);
 router.post('/logout', authController.logout);
+router.post('/logout-all', authController.logoutAllSessions);
 
 /**
  * @swagger

@@ -11,14 +11,10 @@ const router: Router = express.Router();
 router.post('/login', authRateLimit, validate(authValidation.requestLoginBody), authController.requestLogin);
 router.post('/register', authRateLimit, validate(authValidation.requestRegisterBody), authController.requestRegister);
 
-// Test route to debug
-router.post('/test-logout', (req, res) => {
-  res.json({ message: 'Test route works', headers: Object.keys(req.headers) });
-});
-
 // Original auth routes
 router.post('/request-register', validate(authValidation.requestRegisterBody), authController.requestRegister);
 router.post('/confirm-register', validate(authValidation.confirmRegisterBody), authController.confirmRegister);
+router.post('/refresh-token', authController.refreshTokens);
 router.get('/me', auth(), authController.me);
 router.post('/confirm-login', validate(authValidation.confirmLoginBody), authController.confirmLogin);
 router.post('/request-login', validate(authValidation.requestLoginBody), authController.requestLogin);
@@ -30,6 +26,7 @@ router.post(
 );
 router.post('/reset-password', passwordResetRateLimit, validate(authValidation.resetPassword), authController.resetPassword);
 router.post('/resend-request-login', validate(authValidation.resendRequestLogin), authController.resendLoginRequest);
+router.post('/logout-all', authController.logoutAllSessions);
 
 // OAuth Routes (only if strategies are configured)
 const { googleStrategy, githubStrategy } = require('../../../modules/auth');

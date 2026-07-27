@@ -33,13 +33,6 @@ const jwtStrategy = new JwtStrategy(
 );
 
 // Google OAuth Strategy (conditional initialization)
-if (config.env === 'development') {
-  console.log('[OAuth Debug] API URL:', config.apiUrl);
-  console.log('[OAuth Debug] Google config:', {
-    clientId: config.oauth?.google?.clientId ? '***' + config.oauth.google.clientId.slice(-4) : 'NOT SET',
-    callbackUrl: config.oauth?.google?.callbackUrl || 'NOT SET',
-  });
-}
 const googleStrategy = config.oauth?.google?.clientId
   ? new GoogleStrategy(
       {
@@ -156,13 +149,6 @@ const googleStrategy = config.oauth?.google?.clientId
   : null;
 
 // GitHub OAuth Strategy (conditional initialization)
-if (config.env === 'development') {
-  console.log('[OAuth Debug] GitHub config:', {
-    clientId: config.oauth?.github?.clientId ? '***' + config.oauth.github.clientId.slice(-4) : 'NOT SET',
-    clientSecret: config.oauth?.github?.clientSecret ? '***' + config.oauth.github.clientSecret.slice(-4) : 'NOT SET',
-    callbackUrl: config.oauth?.github?.callbackUrl || 'NOT SET',
-  });
-}
 const githubStrategy = config.oauth?.github?.clientId
   ? new GitHubStrategy(
       {

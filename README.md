@@ -2,7 +2,7 @@
 
 Backend API for Amoeba — built with **Express**, **TypeScript**, and **MongoDB**.
 
-Handles authentication, organizations, users, API keys, sessions, and audit logging.
+Handles authentication, multi-workspace tenancy, users, API keys, sessions, recovery codes, and audit logging.
 
 **Repository:** https://github.com/kudzaimupita/amoeba-api
 
@@ -10,9 +10,11 @@ Handles authentication, organizations, users, API keys, sessions, and audit logg
 
 - TypeScript + Express
 - MongoDB with Mongoose
-- JWT auth with refresh tokens and OTP email flows
+- JWT auth with refresh tokens, token refresh endpoint, and OTP email flows
 - Google / GitHub OAuth (optional)
-- Multi-tenant **companies** and **users**
+- Multi-workspace tenancy with memberships, invitations, and workspace switching
+- Account recovery codes (OTP login fallback)
+- Legacy **companies** routes (billing) alongside workspace APIs
 - API keys, activity logs, beta waitlist
 - Request validation (Joi), rate limiting, security middleware
 - Jest unit + integration tests (in-memory MongoDB)
@@ -106,12 +108,13 @@ Base path: `/v1` (also mounted at `/api/v1`)
 | Route | Description |
 |-------|-------------|
 | `GET /health` | Health check |
-| `/v1/auth` | Register, login, OAuth, password reset |
-| `/v1/users` | User CRUD and invites |
+| `/v1/auth` | Register, login, OTP, refresh token, OAuth, password reset |
+| `/v1/workspaces` | Workspace CRUD, switch, members, invitations |
+| `/v1/users` | User CRUD and invites (legacy) |
 | `/v1/companies` | Company profile and billing hooks |
-| `/v1/tokens` | Token management |
+| `/v1/tokens` | Token management, logout |
 | `/v1/api-keys` | API key CRUD |
-| `/v1/account` | Session list / revoke |
+| `/v1/account` | Sessions, recovery codes |
 | `/v1/activity-logs` | Audit logs |
 | `/v1/beta-users` | Waitlist |
 | `/v1/docs` | Swagger UI (development only) |
@@ -129,6 +132,15 @@ curl -X POST http://localhost:3001/v1/auth/register \
 
 Use the returned `access.token` as a Bearer token. Authenticated requests also need the `refreshtoken` header set to the refresh token value.
 
+Refresh an expired access token:
+
+```bash
+curl -X POST http://localhost:3001/v1/auth/refresh-token \
+  -H "refreshtoken: YOUR_REFRESH_TOKEN"
+```
+
+Recovery codes can be used at `POST /v1/auth/confirm-login` with `{ docId, recoveryCode }` instead of a PIN.
+
 ## Project structure
 
 ```
@@ -138,11 +150,12 @@ src/
   connectDB.ts        MongoDB connection
   modules/
     auth/             Authentication & passport
+    workspace/        Multi-workspace tenancy
     user/             Users
     company/          Companies & billing
     token/            JWT / refresh tokens
     apiKeys/          API key auth
-    account/          Session management
+    account/          Sessions & recovery codes
     activityLogs/     Audit trail
     betaUsers/        Waitlist
   clientApp/routes/   Public API route wiring

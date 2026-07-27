@@ -1,4 +1,5 @@
 /* eslint-disable no-param-reassign */
+import crypto from 'crypto';
 import moment, { Moment } from 'moment';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
@@ -44,6 +45,9 @@ export const generateToken = (
   }
   if (workspaceId && type === tokenTypes.ACCESS) {
     payload.wid = workspaceId;
+  }
+  if (type === tokenTypes.REFRESH) {
+    payload.jti = crypto.randomUUID();
   }
   return jwt.sign(payload, secret);
 };

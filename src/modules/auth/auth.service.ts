@@ -6,7 +6,7 @@ import ApiError from '../../utils/errors/ApiError';
 import tokenTypes from '../token/token.types';
 import { getUserByEmail, getUserById, updateUserById } from '../user/user.service';
 import { IUserDoc } from '../user/user.interfaces';
-import { verifyToken } from '../token/token.service';
+import { verifyToken, generateAuthTokens } from '../token/token.service';
 import { userService } from '../user';
 import loginNotificationTemplate from './templates/loginNotification';
 import passwordUpdateNotificationTemplate from './templates/passwordUpdateNotification';
@@ -212,25 +212,45 @@ export const logoutAllSessions = async (refreshToken: string): Promise<void> => 
   );
 };
 
-// /**
-//  * Refresh auth tokens
-//  * @param {string} refreshToken
-//  * @returns {Promise<IUserWithTokens>}
-//  */
-// export const refreshAuth = async (refreshToken: string): Promise<IUserWithTokens> => {
-//   try {
-//     const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
-//     const user = await getUserById(new mongoose.Types.ObjectId(refreshTokenDoc.user), 'skip');
-//     if (!user) {
-//       throw new Error();
-//     }
-//     await refreshTokenDoc.deleteOne();
-//     const tokens = await generateAuthTokens(user);
-//     return { user, tokens };
-//   } catch (error) {
-//     throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
-//   }
-// };
+/**
+ * Refresh auth tokens (rotate refresh token, issue new access token)
+ * @param {string} refreshToken
+ * @param {object} [sessionDetails]
+ * @returns {Promise<{ tokens: import('../token/token.interfaces').AccessAndRefreshTokens }>}
+ */
+export const refreshAuth = async (refreshToken: string, sessionDetails: object = {}) => {
+  try {
+    const refreshTokenDoc = await verifyToken(refreshToken, tokenTypes.REFRESH);
+    const user = await getUserById(new mongoose.Types.ObjectId(refreshTokenDoc.user), 'skip');
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    refreshTokenDoc.blacklisted = true;
+    await refreshTokenDoc.save();
+
+    const workspaceId =
+      refreshTokenDoc.workspace?.toString() ||
+      user.lastActiveWorkspace?.toString() ||
+      user.company?.toString();
+
+    const tokens = await generateAuthTokens(
+      user,
+      user.company?.tokenExpire || 48,
+      sessionDetails,
+      workspaceId,
+      0,
+      'hours',
+      undefined,
+      undefined,
+      workspaceId
+    );
+
+    return { tokens };
+  } catch (error) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+  }
+};
 
 /**
  * Reset password

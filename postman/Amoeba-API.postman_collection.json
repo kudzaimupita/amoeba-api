@@ -129,16 +129,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -181,16 +188,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -233,16 +247,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -285,16 +306,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -337,16 +365,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -389,16 +424,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -432,6 +474,85 @@
                   "language": "json"
                 }
               }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh-token"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
+                  "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout All Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout-all"
+              ]
             },
             "description": ""
           }
@@ -1505,16 +1626,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
@@ -2528,6 +2656,30 @@
           }
         },
         {
+          "name": "Logout All Sessions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/logout-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "logout-all"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
           "name": "Blacklist Tokens",
           "request": {
             "method": "PATCH",
@@ -2647,16 +2799,23 @@
               "script": {
                 "exec": [
                   "const json = pm.response.json();",
-                  "if (json.tokens) {",
-                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
-                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "const tokens = json.tokens || json.data?.tokens;",
+                  "if (tokens) {",
+                  "  pm.collectionVariables.set('accessToken', tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', tokens.refresh.token);",
                   "}",
                   "if (json.user) {",
                   "  const user = json.user._doc || json.user;",
                   "  pm.collectionVariables.set('userId', user.id || user._id);",
                   "  const company = user.company;",
-                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "  if (company) {",
+                  "    const companyId = company._id || company.id || company;",
+                  "    pm.collectionVariables.set('companyId', companyId);",
+                  "    pm.collectionVariables.set('workspaceId', companyId);",
+                  "  }",
                   "}",
+                  "if (json.activeWorkspaceId) pm.collectionVariables.set('workspaceId', json.activeWorkspaceId);",
+                  "if (json.data?.workspaceId) pm.collectionVariables.set('workspaceId', json.data.workspaceId);",
                   "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
                   "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
                   "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"

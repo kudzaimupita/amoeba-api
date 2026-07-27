@@ -34,9 +34,22 @@ const templateId = '3yxj6lj661q4do2r';
 // const notifier = new SendNotification(config.mailerSendKey,);
 const notifier = new SendNotification(config.mailerSendKey, 'noreply@servly.app', 'Servly');
 
+const getRefreshTokenFromRequest = (req: Request): string | undefined =>
+  (req.headers.refreshtoken || req.headers['refresh-token'] || req.headers.RefreshToken) as string | undefined;
+
 // Helper function to get client IP address
 const getClientIpAddress = (req) =>
   req.ip || req.connection.remoteAddress || req.socket.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
+
+const sendOtpOrFail = async (email: string, pin: number, name: string) => {
+  try {
+    await notifier.sendOTP('6481be1fe0d0d1b39a05b474', email, pin, name, otpTemplate);
+  } catch (error) {
+    if (config.env === 'production') {
+      throw new ApiError(httpStatus.BAD_GATEWAY, 'Unable to send verification email');
+    }
+  }
+};
 
 export const requestRegister = catchAsync(async (req: Request, res: Response) => {
   // Check if beta whitelisting is enabled
@@ -101,17 +114,7 @@ export const requestRegister = catchAsync(async (req: Request, res: Response) =>
   const workspaceId = extractWorkspaceId(newUser) ?? company._id.toString();
   const tokens = await tokenService.generateAuthTokens(newUser, 5, generateSessionConfig(req, 'registration'), workspaceId, pin, 'minutes', undefined, undefined, workspaceId);
 
-  // TODO(security): Remove this temporary OTP log before production; OTP codes must not be logged.
-  console.log('Temporary registration OTP debug:', { email: user.email, otp: pin, tokenId: tokens.pin });
-  try {
-    await notifier.sendOTP('6481be1fe0d0d1b39a05b474', user.email, pin, user.name, otpTemplate);
-  } catch (error) {
-    console.error('Temporary registration OTP email delivery failed, returning tokenId because OTP is logged:', {
-      email: user.email,
-      message: error?.message,
-      details: error?.details,
-    });
-  }
+  await sendOtpOrFail(user.email, pin, user.name);
 
   res.status(200).send({ tokenId: String(tokens.pin.token) });
 });
@@ -154,17 +157,7 @@ export const requestLogin = catchAsync(async (req: Request, res: Response) => {
     'minutes'
   );
 
-  // TODO(security): Remove this temporary OTP log before production; OTP codes must not be logged.
-  console.log('Temporary login OTP debug:', { email: user.email, otp: pin, tokenId: tokens.pin });
-  try {
-    await notifier.sendOTP('6481be1fe0d0d1b39a05b474', user.email, pin, user.name, otpTemplate);
-  } catch (error) {
-    console.error('Temporary login OTP email delivery failed, returning tokenId because OTP is logged:', {
-      email: user.email,
-      message: error?.message,
-      details: error?.details,
-    });
-  }
+  await sendOtpOrFail(user.email, pin, user.name);
 
   res.status(200).send({ tokenId: String(tokens.pin.token) });
 });
@@ -220,17 +213,7 @@ export const resendLoginRequest = catchAsync(async (req: Request, res: Response)
     'minutes'
   );
 
-  // TODO(security): Remove this temporary OTP log before production; OTP codes must not be logged.
-  console.log('Temporary resend login OTP debug:', { email: user._doc.email, otp: pin, tokenId: tokens.pin });
-  try {
-    await notifier.sendOTP('6481be1fe0d0d1b39a05b474', user._doc.email, pin, user._doc.name, otpTemplate);
-  } catch (error) {
-    console.error('Temporary resend login OTP email delivery failed, returning tokenId because OTP is logged:', {
-      email: user._doc.email,
-      message: error?.message,
-      details: error?.details,
-    });
-  }
+  await sendOtpOrFail(user._doc.email, pin, user._doc.name);
 
   res.status(200).send({ tokenId: String(tokens.pin.token) });
 });
@@ -408,8 +391,6 @@ export const confirmLogin = catchAsync(async (req: Request, res: Response) => {
       operatingSystem: osInfo?.trim() || 'Unknown OS',
     };
 
-    console.log('Sending login notification with params:', emailParams);
-
     await notifier.sendLoginNotificationEmail(user._doc.email, user._doc.name, loginNotificationTemplate, emailParams);
   } catch (error) {
     console.error('Failed to send login notification:', error);
@@ -527,8 +508,7 @@ export const forgotPassword = catchAsync(async (req: Request, res: Response) => 
  * Logout user (blacklist current session)
  */
 export const logout = catchAsync(async (req: Request, res: Response) => {
-  const refreshToken = (req.headers.refreshtoken || req.headers['refresh-token'] || req.headers.RefreshToken) as string;
-
+  const refreshToken = getRefreshTokenFromRequest(req);
 
   if (!refreshToken) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Refresh token is required in headers.refreshtoken');
@@ -554,7 +534,7 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
  * Logout all sessions (blacklist all user tokens)
  */
 export const logoutAllSessions = catchAsync(async (req: Request, res: Response) => {
-  const refreshToken = req.headers.refreshtoken as string;
+  const refreshToken = getRefreshTokenFromRequest(req);
 
   if (!refreshToken) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Refresh token is required');
@@ -574,6 +554,21 @@ export const logoutAllSessions = catchAsync(async (req: Request, res: Response) 
   });
 
   res.status(httpStatus.NO_CONTENT).send();
+});
+
+/**
+ * Refresh access token using a valid refresh token (rotates refresh token)
+ */
+export const refreshTokens = catchAsync(async (req: Request, res: Response) => {
+  const refreshToken = getRefreshTokenFromRequest(req);
+
+  if (!refreshToken) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Refresh token is required in headers.refreshtoken');
+  }
+
+  const { tokens } = await authService.refreshAuth(refreshToken, generateSessionConfig(req, 'token_refresh'));
+
+  res.status(httpStatus.OK).send({ tokens });
 });
 
 /**
