@@ -27,7 +27,8 @@ export const generateToken = (
   expires: Moment,
   type: string,
   secret: string = config.jwt.secret,
-  pluginId?: any
+  pluginId?: any,
+  workspaceId?: string
 ): string => {
   if (!secret) {
     secret = config.jwt.secret;
@@ -40,6 +41,9 @@ export const generateToken = (
   } as any;
   if (pluginId) {
     payload.sub = JSON.stringify({ userId, pluginId });
+  }
+  if (workspaceId && type === tokenTypes.ACCESS) {
+    payload.wid = workspaceId;
   }
   return jwt.sign(payload, secret);
 };
@@ -62,9 +66,9 @@ export const saveToken = async (
   sessionDetails: object,
   company: string,
   pin: number | null,
-  pluginId?: any
+  pluginId?: any,
+  workspaceId?: string
 ): Promise<ITokenDoc> => {
-  // if(pluginId){}
   const tokenDoc = await Token.create({
     token,
     user: pluginId ? JSON.stringify({ userId, pluginId }) : userId,
@@ -72,7 +76,7 @@ export const saveToken = async (
     type,
     blacklisted,
     sessionDetails,
-    company,
+    workspace: workspaceId || company || undefined,
     pin,
   });
   return tokenDoc;
@@ -119,10 +123,19 @@ export const generateAuthTokens = async (
   pin: number,
   timeUnits: string = 'hours',
   pluginId?: any,
-  secret?: any
+  secret?: any,
+  workspaceId?: string
 ): Promise<AccessAndRefreshTokens> => {
+  const activeWorkspaceId = workspaceId || company;
   const accessTokenExpires = moment().add(duration || 48, timeUnits);
-  const accessToken = generateToken(user._id, accessTokenExpires, tokenTypes.ACCESS, secret || '', pluginId);
+  const accessToken = generateToken(
+    user._id,
+    accessTokenExpires,
+    tokenTypes.ACCESS,
+    secret || '',
+    pluginId,
+    activeWorkspaceId
+  );
 
   const refreshTokenExpires = moment().add(duration || 48, timeUnits);
   const refreshToken = generateToken(user._id, refreshTokenExpires, tokenTypes.REFRESH, secret || '', pluginId);
@@ -135,12 +148,24 @@ export const generateAuthTokens = async (
     sessionDetails,
     company,
     null,
-    pluginId
+    pluginId,
+    activeWorkspaceId
   );
 
   let pinDoc = {} as any;
   if (pin) {
-    pinDoc = await saveToken(refreshToken, user._id, accessTokenExpires, 'pin', false, sessionDetails, company, pin);
+    pinDoc = await saveToken(
+      refreshToken,
+      user._id,
+      accessTokenExpires,
+      'pin',
+      false,
+      sessionDetails,
+      company,
+      pin,
+      pluginId,
+      activeWorkspaceId
+    );
   }
 
   return {

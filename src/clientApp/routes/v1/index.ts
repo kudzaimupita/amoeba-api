@@ -2,6 +2,7 @@ import express, { Router } from 'express';
 
 import accountRoute from '../../../modules/account/account.route';
 import { apiKeyRoute } from '../../../modules/apiKeys';
+import { workspaceRoute } from '../../../modules/workspace';
 import config from '../../../config/config';
 import tokenRoute from '../../../modules/token/token.route';
 import activityLogRoute from './activityLog.route';
@@ -27,6 +28,7 @@ const defaultIRoute: IRoute[] = [
   { path: '/tokens', route: tokenRoute },
   { path: '/api-keys', route: apiKeyRoute },
   { path: '/account', route: accountRoute },
+  { path: '/workspaces', route: workspaceRoute },
 ];
 
 const devIRoute: IRoute[] = [{ path: '/docs', route: docsRoute }];

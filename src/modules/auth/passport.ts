@@ -8,6 +8,7 @@ import User from '../user/user.model';
 import { IPayload } from '../token/token.interfaces';
 import { companyService } from '../company';
 import { PlanType } from '../../config/billingPlans';
+import * as workspaceService from '../workspace/workspace.service';
 
 const jwtStrategy = new JwtStrategy(
   {
@@ -23,6 +24,7 @@ const jwtStrategy = new JwtStrategy(
       if (!user) {
         return done(null, false);
       }
+      (user as any).jwtWorkspaceId = payload.wid;
       done(null, user);
     } catch (error) {
       done(error, false);
@@ -138,6 +140,7 @@ const googleStrategy = config.oauth?.google?.clientId
             // Update user with company ID
             user.company = company._id;
             await user.save();
+            await workspaceService.createOwnerMembership(user._id, company._id);
           }
 
           // Attach IP address and user agent to the user object for use in callback
@@ -285,6 +288,7 @@ const githubStrategy = config.oauth?.github?.clientId
             // Update user with company ID
             user.company = company._id;
             await user.save();
+            await workspaceService.createOwnerMembership(user._id, company._id);
           }
 
           // Attach IP address and user agent to the user object for use in callback

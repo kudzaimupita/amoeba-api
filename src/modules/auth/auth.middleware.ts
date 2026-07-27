@@ -8,8 +8,9 @@ import { IUserDoc } from '../user/user.interfaces';
 import { Token } from '../token';
 import { activityLogService } from '../activityLogs';
 import { companyService } from '../company';
-// Import directly to avoid circular dependency
 import * as apiKeyService from '../apiKeys/apiKey.service';
+import * as workspaceService from '../workspace/workspace.service';
+import { roleCanPerform } from '../workspace/workspace.constants';
 
 // @ts-nocheck
 /* eslint-disable prettier/prettier */
@@ -17,7 +18,6 @@ import * as apiKeyService from '../apiKeys/apiKey.service';
 export const checkPermission = (operationType: string, resource: string, permissions: string[] = []): boolean => {
   const permissionKey: string = `${operationType}-${resource}`;
 
-  // Check for admin permissions that bypass specific permission checks
   const hasGlobalAdmin = permissions.includes('admin-global');
   const hasResourceAdmin = permissions.includes(`admin-${resource}`);
   const hasSpecificPermission = permissions.includes(permissionKey);
@@ -25,12 +25,37 @@ export const checkPermission = (operationType: string, resource: string, permiss
   return hasGlobalAdmin || hasResourceAdmin || hasSpecificPermission;
 };
 
+const resolveWorkspaceContext = async (req: Request, user: IUserDoc, refreshTokenDoc: any) => {
+  const workspaceId = await workspaceService.resolveActiveWorkspaceId(user.id, {
+    jwtWorkspaceId: (user as any).jwtWorkspaceId,
+    headerWorkspaceId: (req.headers['x-workspace-id'] || req.headers.workspaceid || req.headers.companyid) as string,
+    refreshTokenWorkspaceId: refreshTokenDoc?.workspace,
+    legacyCompanyId: user.company?._id?.toString() ?? user.company?.toString(),
+  });
+
+  const membership = await workspaceService.requireMembership(user.id, workspaceId);
+  const company = await companyService.getCompanyById(workspaceId as any);
+
+  if (!company) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Workspace not found');
+  }
+
+  if (company?.billing?.accountDeactivated) {
+    throw new ApiError(httpStatus.LOCKED, 'Account Locked, please update your payment details');
+  }
+
+  req.user = user;
+  req.user.company = company;
+  (req as any).activeWorkspaceId = workspaceId;
+  (req as any).workspaceMembership = membership;
+  req.user.permissions = req.user.permissions || [];
+  req.user.isSystemUser = membership.role === 'owner' || membership.role === 'admin';
+};
+
 const verifyCallback =
   (req: Request, resolve: any, reject: any, type?: string, resource?: string) =>
     async (err: Error, user: IUserDoc, info: string) => {
-
       if (err || info || !user) {
-
         activityLogService.createActivityLog({
           actionBy: req.user?._id,
           resourceType: 'USER',
@@ -42,38 +67,14 @@ const verifyCallback =
         });
         return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
       }
-      req.user = user;
 
       const refreshToken = await Token.findOne({ token: req.headers.refreshtoken });
 
-      // Only allow company switching for system admins with proper company ID
-      if (req.user?.isSystemUser && req.headers.companyid) {
-        const companyId = req.headers.companyid as any;
-
-        const company = await companyService.getCompanyById(companyId);
-        if (!company) {
-          return reject(new ApiError(httpStatus.NOT_FOUND, 'Company not found'));
-        }
-        if (company && company?.billing?.accountDeactivated) {
-          if (resource !== 'billing') {
-            reject(new ApiError(httpStatus.LOCKED, 'Account Locked, please update your payment details'));
-          }
-        }
-        req.user.company = company;
-      } else {
-        const company = await companyService.getCompanyById(req?.user?.company?._id);
-        if (company && company?.billing?.accountDeactivated) {
-          if (resource !== 'billing') {
-            reject(new ApiError(httpStatus.LOCKED, 'Account Locked, please update your payment details'));
-          }
-        }
-      }
-
       if (refreshToken?.blacklisted || !refreshToken) {
         activityLogService.createActivityLog({
-          actionBy: req.user?._id,
+          actionBy: user?._id,
           resourceType: 'USER',
-          company: req?.user?.company?._id,
+          company: user?.company?._id,
           actionType: 'SECURITY_WARNING',
           description: `Error invalid session at ${new Date()}`,
           status: 'FAILURE',
@@ -81,9 +82,36 @@ const verifyCallback =
         });
         return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Session token is blacklisted'));
       }
-      // Check permissions if type and resource are specified
+
+      try {
+        await resolveWorkspaceContext(req, user, refreshToken);
+      } catch (error) {
+        return reject(error);
+      }
+
       if (type && resource) {
-        if (!req.user.isSystemUser && !checkPermission(type, resource, req.user.permissions || [])) {
+        const membership = (req as any).workspaceMembership;
+        const isApiKeyAuth = Boolean((req.user as any)?.isApiKeyAuth);
+
+        if (!isApiKeyAuth && membership && !roleCanPerform(membership.role, type)) {
+          activityLogService.createActivityLog({
+            actionBy: req.user?._id,
+            resourceType: 'USER',
+            company: req?.user?.company?._id,
+            actionType: 'SECURITY_WARNING',
+            description: `Permission denied for ${type}-${resource} at ${new Date()}`,
+            status: 'FAILURE',
+            statusCode: httpStatus.FORBIDDEN,
+          });
+          return reject(new ApiError(httpStatus.FORBIDDEN, 'Insufficient permissions'));
+        }
+
+        if (
+          !isApiKeyAuth &&
+          !membership &&
+          !req.user.isSystemUser &&
+          !checkPermission(type, resource, req.user.permissions || [])
+        ) {
           activityLogService.createActivityLog({
             actionBy: req.user?._id,
             resourceType: 'USER',
@@ -101,13 +129,11 @@ const verifyCallback =
     };
 
 const authMiddleware = (type?: string, resource?: string) => async (req: Request, res: Response, next: NextFunction) => {
-  // Skip authentication for OPTIONS requests (CORS preflight)
   if (req.method === 'OPTIONS') {
     return next();
   }
 
-  // Check for API key authentication first
-  const apiKey = req.headers['x-api-key'] as string || req.query.api_key as string;
+  const apiKey = (req.headers['x-api-key'] as string) || (req.query.api_key as string);
   if (apiKey) {
     try {
       const keyDoc = await apiKeyService.validateApiKey(apiKey);
@@ -116,18 +142,15 @@ const authMiddleware = (type?: string, resource?: string) => async (req: Request
         return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid or expired API key'));
       }
 
-      // Check IP whitelist
       const clientIp = req.ip || req.socket.remoteAddress || '';
       if (!apiKeyService.isIpAllowed(keyDoc, clientIp)) {
         return next(new ApiError(httpStatus.FORBIDDEN, 'IP address not allowed'));
       }
 
-      // Check permission level for operation
       if (type && !apiKeyService.isOperationAllowed(keyDoc.permission, type)) {
         return next(new ApiError(httpStatus.FORBIDDEN, 'Readonly API key cannot perform this action'));
       }
 
-      // Set request context with API key info
       (req as any).apiKey = keyDoc;
       req.user = {
         company: keyDoc.company,
@@ -135,9 +158,9 @@ const authMiddleware = (type?: string, resource?: string) => async (req: Request
         isApiKeyAuth: true,
         apiKeyPermission: keyDoc.permission,
       } as any;
+      (req as any).activeWorkspaceId = keyDoc.company?._id?.toString() ?? keyDoc.company?.toString();
 
-      // Update last used timestamp (async, don't wait)
-      apiKeyService.updateLastUsed(keyDoc._id).catch(() => { });
+      apiKeyService.updateLastUsed(keyDoc._id).catch(() => {});
 
       return next();
     } catch (error) {
@@ -145,7 +168,6 @@ const authMiddleware = (type?: string, resource?: string) => async (req: Request
     }
   }
 
-  // Fall back to JWT authentication
   return new Promise<void>((resolve, reject) => {
     passport.authenticate('jwt', { session: false }, verifyCallback(req, resolve, reject, type, resource))(req, res, next);
   })

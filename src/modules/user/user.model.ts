@@ -109,6 +109,10 @@ const userSchema = new mongoose.Schema<IUserDoc, IUserModel>(
       type: mongoose.Schema.ObjectId,
       ref: 'Company',
     },
+    lastActiveWorkspace: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Company',
+    },
     status: {
       type: String,
       default: 'active',

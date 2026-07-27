@@ -10,6 +10,7 @@ export interface IToken {
   blacklisted: boolean;
   pin: number;
   sessionDetails: any;
+  workspace?: string;
 }
 
 export type NewToken = Omit<IToken, 'blacklisted'>;
@@ -25,6 +26,7 @@ export interface IPayload extends JwtPayload {
   iat: number;
   exp: number;
   type: string;
+  wid?: string;
 }
 
 export interface TokenPayload {

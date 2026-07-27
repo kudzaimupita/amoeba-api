@@ -26,6 +26,9 @@ import { otpTemplate } from './templates/otp';
 import resetPasswordTemplate from './templates/resetPassword';
 import { betaUserService } from '../betaUsers/betaUser.service';
 import loginNotificationTemplate from './templates/loginNotification';
+import * as workspaceService from '../workspace/workspace.service';
+import { extractWorkspaceId } from '../workspace/workspace.utils';
+import * as recoveryCodeService from '../account/recoveryCode.service';
 
 const templateId = '3yxj6lj661q4do2r';
 // const notifier = new SendNotification(config.mailerSendKey,);
@@ -82,20 +85,21 @@ export const requestRegister = catchAsync(async (req: Request, res: Response) =>
     },
   });
 
-  // Update the user with the company ID
-  await userService.updateUserById(user._id, { company: company._id }, 'skip');
+  await workspaceService.createOwnerMembership(user._id, company._id);
 
   const newUser = (await getUserById(user._id, company._id.toString())) as IUserDoc;
 
   // Bypass OTP for test email
   if (config.testEmail && req.body.email === config.testEmail) {
     await userService.updateUserById(new ObjectId(user._id), { acceptedInvitation: true, currentTokens: 1000000 }, 'skip');
-    const tokens = await tokenService.generateAuthTokens(newUser, 48, generateSessionConfig(req, 'registration'), company._id, 0, 'hours');
+    const workspaceId = extractWorkspaceId(newUser) ?? company._id.toString();
+    const tokens = await tokenService.generateAuthTokens(newUser, 48, generateSessionConfig(req, 'registration'), workspaceId, 0, 'hours', undefined, undefined, workspaceId);
     return res.status(200).send({ user: { ...newUser.toObject(), password: '' }, tokens, bypassed: true });
   }
 
   const pin = generatePin(6);
-  const tokens = await tokenService.generateAuthTokens(newUser, 5, generateSessionConfig(req, 'registration'), company._id, pin, 'minutes');
+  const workspaceId = extractWorkspaceId(newUser) ?? company._id.toString();
+  const tokens = await tokenService.generateAuthTokens(newUser, 5, generateSessionConfig(req, 'registration'), workspaceId, pin, 'minutes', undefined, undefined, workspaceId);
 
   // TODO(security): Remove this temporary OTP log before production; OTP codes must not be logged.
   console.log('Temporary registration OTP debug:', { email: user.email, otp: pin, tokenId: tokens.pin });
@@ -129,7 +133,10 @@ export const requestLogin = catchAsync(async (req: Request, res: Response) => {
       generateSessionConfig(req, 'test_bypass'),
       user._doc?.company?.id || user?.company?.id,
       0,
-      'hours'
+      'hours',
+      undefined,
+      undefined,
+      user._doc?.lastActiveWorkspace?.toString() || user?.lastActiveWorkspace?.toString() || user._doc?.company?.id || user?.company?.id
     );
     return res.status(200).send({ user: { ...(user._doc || user), password: '' }, tokens, bypassed: true });
   }
@@ -229,7 +236,7 @@ export const resendLoginRequest = catchAsync(async (req: Request, res: Response)
 });
 
 export const confirmLogin = catchAsync(async (req: Request, res: Response) => {
-  const { pin, docId } = req.body;
+  const { pin, docId, recoveryCode } = req.body;
 
   if (!mongoose.isValidObjectId(docId)) {
     throw new ApiError(401, 'Invalid token id', true, '', 'AUTH_OTP_EXPIRED');
@@ -252,7 +259,9 @@ export const confirmLogin = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(401, 'Invalid token', true, '', 'AUTH_OTP_EXPIRED');
   }
 
-  if (tokenResult.pin !== pin * 1) {
+  if (recoveryCode) {
+    await recoveryCodeService.verifyAndConsumeRecoveryCode(user._id, recoveryCode);
+  } else if (tokenResult.pin !== pin * 1) {
     throw new ApiError(401, 'Invalid OTP pin', true, '', 'AUTH_OTP_INVALID');
   }
 
@@ -264,9 +273,12 @@ export const confirmLogin = catchAsync(async (req: Request, res: Response) => {
     user._doc,
     user.company?.tokenExpire,
     generateSessionConfig(req, 'otp_verified'),
-    user.company?.id,
+    extractWorkspaceId(user._doc) ?? extractWorkspaceId(user),
     0,
-    undefined
+    undefined,
+    undefined,
+    undefined,
+    extractWorkspaceId(user._doc) ?? extractWorkspaceId(user)
   );
   await activityLogService.createActivityLog({
     actionBy: user?._doc._id,
@@ -434,13 +446,17 @@ export const confirmRegister = catchAsync(async (req: Request, res: Response) =>
 
   // await companyService.updateCompanyById(new ObjectId(user?._doc.company?.id), );
 
+  const workspaceId = extractWorkspaceId(user._doc) ?? extractWorkspaceId(user);
   const tokens = await tokenService.generateAuthTokens(
     user._doc,
     user._doc.company?.tokenExpire,
     generateSessionConfig(req, 'oauth'),
-    user?._doc.company?.id,
+    workspaceId,
     0,
-    undefined
+    undefined,
+    undefined,
+    undefined,
+    workspaceId
   );
 
   await userService.updateUserById(new ObjectId(user?._id), { acceptedInvitation: true }, 'skip');

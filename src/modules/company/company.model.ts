@@ -138,13 +138,7 @@ const companySchema = new mongoose.Schema<ICompanyDoc, ICompanyModel>(
     timestamps: true,
   }
 );
-companySchema.index(
-  {
-    systemUser: 1,
-  },
-
-  { unique: true }
-);
+companySchema.index({ systemUser: 1 });
 // add plugin that converts mongoose to json
 companySchema.plugin(toJSON);
 companySchema.plugin(paginate);

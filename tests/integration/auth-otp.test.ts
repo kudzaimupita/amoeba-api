@@ -66,7 +66,7 @@ describe('Password management', () => {
     await request(app)
       .patch('/v1/auth/change-password')
       .set(session.headers)
-      .send({ currentPassword: 'Password1', newPassword: 'Password2' })
+      .send({ currentPassword: 'Password1', newPassword: 'Password2!' })
       .expect(httpStatus.NO_CONTENT);
 
     await request(app)
@@ -74,7 +74,7 @@ describe('Password management', () => {
       .send({ email: otpUser.email, password: 'Password1' })
       .expect(httpStatus.UNAUTHORIZED);
 
-    await request(app).post('/v1/auth/request-login').send({ email: otpUser.email, password: 'Password2' }).expect(httpStatus.OK);
+    await request(app).post('/v1/auth/request-login').send({ email: otpUser.email, password: 'Password2!' }).expect(httpStatus.OK);
   });
 
   test('forgot-password and reset-password flow', async () => {

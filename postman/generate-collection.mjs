@@ -91,6 +91,9 @@ const routes = [
         body: { pin: 123456, docId: '{{otpDocId}}' },
         test: true,
       }),
+      req('Confirm Login (Recovery Code)', 'POST', '/v1/auth/confirm-login', {
+        body: { recoveryCode: 'ABCD-EFGH', docId: '{{otpDocId}}' },
+      }),
       req('Get Me', 'GET', '/v1/auth/me', { auth: true }),
       req('Forgot Password', 'POST', '/v1/auth/forgot-password', { body: { email: '{{testEmail}}' } }),
       req('Reset Password', 'POST', '/v1/auth/reset-password', {
@@ -134,6 +137,20 @@ const routes = [
       req('Update User', 'PATCH', '/v1/users/{{userId}}', { auth: true, body: { name: 'Updated Name' } }),
       req('Delete User', 'DELETE', '/v1/users/{{userId}}', { auth: true }),
       req('Fix User Acceptance', 'PATCH', '/v1/users/{{userId}}/fix-acceptance', { auth: true }),
+    ],
+  },
+  {
+    name: 'Workspaces',
+    item: [
+      req('List Workspaces', 'GET', '/v1/workspaces', { auth: true }),
+      req('Create Workspace', 'POST', '/v1/workspaces', { auth: true, body: { name: 'New Workspace' } }),
+      req('Get Workspace', 'GET', '/v1/workspaces/{{workspaceId}}', { auth: true }),
+      req('Update Workspace', 'PATCH', '/v1/workspaces/{{workspaceId}}', { auth: true, body: { name: 'Renamed Workspace' } }),
+      req('Switch Workspace', 'POST', '/v1/workspaces/{{workspaceId}}/switch', { auth: true, test: true }),
+      req('List Members', 'GET', '/v1/workspaces/{{workspaceId}}/members', { auth: true }),
+      req('Invite Member', 'POST', '/v1/workspaces/{{workspaceId}}/invitations', { auth: true, body: { email: 'member@example.com', role: 'member' } }),
+      req('Accept Invitation', 'POST', '/v1/workspaces/invitations/accept', { auth: true, body: { token: '{{inviteToken}}' } }),
+      req('Preview Invitation (public)', 'GET', '/v1/workspaces/invitations/{{inviteToken}}'),
     ],
   },
   {
@@ -209,6 +226,9 @@ const routes = [
     item: [
       req('List Sessions', 'GET', '/v1/account/sessions', { auth: true }),
       req('Revoke Session', 'DELETE', '/v1/account/sessions/{{sessionId}}', { auth: true }),
+      req('Get Recovery Code Summary', 'GET', '/v1/account/recovery-codes', { auth: true }),
+      req('Generate Recovery Codes', 'POST', '/v1/account/recovery-codes', { auth: true, body: { password: 'Password1' } }),
+      req('Revoke Recovery Codes', 'DELETE', '/v1/account/recovery-codes', { auth: true, body: { password: 'Password1' } }),
     ],
   },
   {
@@ -271,7 +291,8 @@ const collection = {
     { key: 'accessToken', value: '' },
     { key: 'refreshToken', value: '' },
     { key: 'userId', value: '' },
-    { key: 'companyId', value: '' },
+    { key: 'workspaceId', value: '' },
+    { key: 'inviteToken', value: '' },
     { key: 'apiKeyId', value: '' },
     { key: 'apiKey', value: '' },
     { key: 'otpDocId', value: '' },

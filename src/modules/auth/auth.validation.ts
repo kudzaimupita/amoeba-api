@@ -18,8 +18,13 @@ export const requestLoginBody: any = {
 };
 
 export const confirmLoginBody: any = {
-  pin: Joi.number().required(),
-  docId: Joi.string().required(),
+  body: Joi.object()
+    .keys({
+      docId: Joi.string().required(),
+      pin: Joi.number(),
+      recoveryCode: Joi.string().trim(),
+    })
+    .xor('pin', 'recoveryCode'),
 };
 
 export const forgotPassword = {

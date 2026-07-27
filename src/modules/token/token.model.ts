@@ -35,6 +35,10 @@ const tokenSchema = new mongoose.Schema<ITokenDoc, ITokenModel>(
       type: Boolean,
       default: false,
     },
+    workspace: {
+      type: String,
+      index: true,
+    },
   },
   {
     timestamps: true,

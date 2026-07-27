@@ -44,6 +44,7 @@ export interface IUser {
   isBoarded: boolean;
   stripeCustomerId: string;
   company: any;
+  lastActiveWorkspace?: any;
   isTopUpNotified: boolean;
   topUpNotificationDate: any;
   status: string;
