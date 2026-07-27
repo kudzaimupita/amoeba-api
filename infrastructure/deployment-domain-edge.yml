@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Global CloudFront edge and hostname router for generated Servly deployment domains.
+
+Parameters:
+  RootDomain:
+    Type: String
+    Default: servly.app
+  HostedZoneId:
+    Type: String
+    Default: ''
+    Description: Route53 hosted zone ID. Required only when ManageWildcardDnsRecord is true.
+  ManageWildcardDnsRecord:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Create the wildcard alias. Keep false while migrating an existing wildcard record.
+  WildcardCertificateArn:
+    Type: String
+    Description: ACM certificate ARN in us-east-1 covering the generated wildcard domain.
+  FallbackOriginDomainName:
+    Type: String
+    Description: Public DNS hostname serving the branded fallback page, without a URL scheme.
+  PriceClass:
+    Type: String
+    Default: PriceClass_100
+    AllowedValues: [PriceClass_100, PriceClass_200, PriceClass_All]
+
+Conditions:
+  ShouldManageWildcardDnsRecord: !Equals [!Ref ManageWildcardDnsRecord, 'true']
+
+Resources:
+  DeploymentRouteStore:
+    Type: AWS::CloudFront::KeyValueStore
+    Properties:
+      Name: servly-deployment-routes
+      Comment: Generated deployment hostname to regional ingress routes
+
+  DeploymentRouterFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: servly-deployment-router
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Routes generated Servly hostnames to their regional ingress
+        Runtime: cloudfront-js-2.0
+        KeyValueStoreAssociations:
+          - KeyValueStoreARN: !GetAtt DeploymentRouteStore.Arn
+      FunctionCode: |
+        import cf from 'cloudfront';
+        const kvs = cf.kvs();
+        function queryString(query) {
+          var parts = [];
+          var keys = Object.keys(query || {});
+          for (var i = 0; i < keys.length; i += 1) {
+            var key = keys[i];
+            var entry = query[key];
+            if (entry.multiValue) {
+              for (var j = 0; j < entry.multiValue.length; j += 1) {
+                parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(entry.multiValue[j].value || ''));
+              }
+            } else {
+              parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(entry.value || ''));
+            }
+          }
+          return parts.length ? '?' + parts.join('&') : '';
+        }
+        async function handler(event) {
+          var request = event.request;
+          var host = request.headers.host && request.headers.host.value;
+          if (!host) return request;
+          var route;
+          try {
+            route = await kvs.get(host.toLowerCase(), { format: 'json' });
+          } catch (error) {
+            return request;
+          }
+          if (route.kind === 'redirect') {
+            var suffix = route.preservePath === false ? '' : request.uri + queryString(request.querystring);
+            return {
+              statusCode: route.statusCode || 301,
+              statusDescription: 'Moved',
+              headers: { location: { value: route.redirectUrl.replace(/\/$/, '') + suffix } }
+            };
+          }
+          if (route.kind === 'unavailable') {
+            var unavailableBody = route.errorPageUrl
+              ? '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Servly</title><style>html,body,iframe{margin:0;width:100%;height:100%;border:0;background:#101010}</style><iframe src="' + route.errorPageUrl + '?name=' + encodeURIComponent(host) + '" title="Servly status"></iframe>'
+              : '<!doctype html><meta name="viewport" content="width=device-width"><title>Servly</title><style>body{margin:0;background:#101010;color:#fff;font:14px Inter,system-ui;display:grid;place-items:center;min-height:100vh;text-align:center}main{padding:32px}h1{font-size:28px;margin:0 0 12px}p{color:#aaa;margin:0}</style><main><h1>Service unavailable</h1><p>This Servly app is not currently available.</p></main>';
+            return {
+              statusCode: 503,
+              statusDescription: 'Service Unavailable',
+              headers: {
+                'content-type': { value: 'text/html; charset=utf-8' },
+                'cache-control': { value: 'no-store, max-age=0' },
+                'retry-after': { value: '60' }
+              },
+              body: {
+                encoding: 'text',
+                data: unavailableBody
+              }
+            };
+          }
+          if (route.kind !== 'origin' || !route.originDomainName) return request;
+          delete request.headers['x-servly-origin-secret'];
+          delete request.headers['x-servly-request-host'];
+          var customHeaders = { 'x-servly-origin-secret': route.originSecret };
+          if (route.originRequestHost) customHeaders['x-servly-request-host'] = route.originRequestHost;
+          cf.updateRequestOrigin({
+            domainName: route.originDomainName,
+            hostHeader: route.originHostHeader || host,
+            customHeaders: customHeaders,
+            customOriginConfig: {
+              port: route.originPort || (route.originProtocol === 'https' ? 443 : 80),
+              protocol: route.originProtocol === 'https' ? 'https' : 'http',
+              sslProtocols: ['TLSv1.2']
+            }
+          });
+          return request;
+        }
+
+  DeploymentEdgeDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Global edge for generated Servly deployment domains
+        Aliases:
+          - !Sub '*.${RootDomain}'
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: !Ref PriceClass
+        Origins:
+          - Id: branded-fallback
+            DomainName: !Ref FallbackOriginDomainName
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        DefaultCacheBehavior:
+          TargetOriginId: branded-fallback
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+          CachedMethods: [GET, HEAD, OPTIONS]
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt DeploymentRouterFunction.FunctionARN
+        ViewerCertificate:
+          AcmCertificateArn: !Ref WildcardCertificateArn
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+
+  GeneratedDomainWildcard:
+    Type: AWS::Route53::RecordSet
+    Condition: ShouldManageWildcardDnsRecord
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub '*.${RootDomain}'
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt DeploymentEdgeDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
+Outputs:
+  DistributionId:
+    Value: !Ref DeploymentEdgeDistribution
+  DistributionDnsName:
+    Value: !GetAtt DeploymentEdgeDistribution.DomainName
+  CloudFrontHostedZoneId:
+    Value: Z2FDTNDATAQYW2
+  WildcardAliasTarget:
+    Value: !GetAtt DeploymentEdgeDistribution.DomainName
+  KeyValueStoreArn:
+    Value: !GetAtt DeploymentRouteStore.Arn
+  RouterFunctionArn:
+    Value: !GetAtt DeploymentRouterFunction.FunctionARN

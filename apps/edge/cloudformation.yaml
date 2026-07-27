@@ -1,0 +1,149 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Servly Node reverse-tunnel edge service and CloudFront origin
+
+Parameters:
+  ClusterArn:
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  ServiceSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+  HttpsListenerArn:
+    Type: String
+  ListenerRulePriority:
+    Type: Number
+    Default: 40
+  ImageUri:
+    Type: String
+  ApiInternalUrl:
+    Type: String
+  GatewaySecretArn:
+    Type: String
+    NoEcho: true
+  OriginSecretArn:
+    Type: String
+    NoEcho: true
+  RootDomain:
+    Type: String
+
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/servly-edge
+      RetentionInDays: 14
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: ReadEdgeSecrets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource:
+                  - !Ref GatewaySecretArn
+                  - !Ref OriginSecretArn
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: servly-edge
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: servly-edge
+          Image: !Ref ImageUri
+          Essential: true
+          PortMappings:
+            - ContainerPort: 8082
+              Protocol: tcp
+          Environment:
+            - Name: SERVLY_API_INTERNAL_URL
+              Value: !Ref ApiInternalUrl
+            - Name: SERVLY_ERROR_PAGE_BASE_URL
+              Value: !Ref ApiInternalUrl
+            - Name: EDGE_ADDR
+              Value: ':8082'
+          Secrets:
+            - Name: NODE_GATEWAY_SHARED_SECRET
+              ValueFrom: !Ref GatewaySecretArn
+            - Name: EDGE_ORIGIN_SHARED_SECRET
+              ValueFrom: !Ref OriginSecretArn
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: edge
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcId
+      TargetType: ip
+      Protocol: HTTP
+      Port: 8082
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      Matcher: { HttpCode: '200' }
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '15'
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref HttpsListenerArn
+      Priority: !Ref ListenerRulePriority
+      Conditions:
+        - Field: host-header
+          HostHeaderConfig:
+            Values:
+              - !Sub 'node-*.${RootDomain}'
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: ListenerRule
+    Properties:
+      Cluster: !Ref ClusterArn
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref TaskDefinition
+      HealthCheckGracePeriodSeconds: 30
+      DeploymentConfiguration:
+        MinimumHealthyPercent: 0
+        MaximumPercent: 100
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups: !Ref ServiceSecurityGroupIds
+      LoadBalancers:
+        - ContainerName: servly-edge
+          ContainerPort: 8082
+          TargetGroupArn: !Ref TargetGroup
+
+Outputs:
+  ServiceName:
+    Value: !GetAtt Service.Name
+  TargetGroupArn:
+    Value: !Ref TargetGroup

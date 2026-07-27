@@ -1,0 +1,7 @@
+# .nodemonignore
+
+build/
+dist/
+node_modules/
+*.log
+*.tmp

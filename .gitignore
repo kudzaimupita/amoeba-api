@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# yarn error logs
+yarn-error.log
+
+# Environment varibales
+.env*
+!.env*.example
+
+# Code coverage
+coverage
+
+# build folder
+dist
+*.tsbuildinfo
+
+# Local data exports and backups
+backups/
+exported-applications/
+exported-plugins/
+
+# docker volume
+data
+yarn.lock
+debug-websocket.js
+.claude/settings.local.json
+prompt-instructions.txt
+.DS_Store
+.vscode/settings.json

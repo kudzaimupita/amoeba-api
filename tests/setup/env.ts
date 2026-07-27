@@ -1,0 +1,13 @@
+process.env.NODE_ENV = 'test';
+process.env.PORT = '0';
+process.env.MONGODB_URL = 'mongodb://127.0.0.1:27017/servly-test';
+process.env.JWT_SECRET = 'test-jwt-secret';
+process.env.ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef';
+process.env.APP_AWS_ACCESS_KEY = 'test';
+process.env.APP_AWS_ACCESS_SECRET = 'test';
+process.env.APP_AWS_REGION = 'us-east-1';
+process.env.MAILER_SEND_KEY = 'test';
+process.env.API_URL = 'http://localhost:3001';
+process.env.CLIENT_URL = 'http://localhost:3000';
+process.env.BETA_WHITELIST_ENABLED = 'false';
+process.env.TEST_EMAIL = 'test@example.com';

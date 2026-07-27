@@ -1,0 +1,37 @@
+<!-- Subject: Servly beta update — what shipped from the OWI workshop -->
+<!DOCTYPE html>
+<html lang="{{ lang | default: 'en' }}" dir="{{ dir | default: 'ltr' }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Servly: OWI Workshop Follow‑Up</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:#ffffff; color:#111111; padding:24px; line-height:1.6; }
+      a { color:#0366d6; text-decoration: underline; }
+      .muted { color:#555; }
+      ul { padding-left: 18px; }
+    </style>
+  </head>
+  <body>
+    <p>Hi {{ first_name }},</p>
+
+    <p>Quick follow‑up from our <strong>User Testing Workshop</strong> session last month, thanks again for testing Servly and sharing feedback. We’re now in <strong>beta</strong>.</p>
+
+    <p>In case you missed the feature roundup on OWI Discord, here it is:</p>
+    <ul>
+      <li><strong>Update post:</strong> <a href="{{ owi_update_url | default: 'https://discord.com/channels/968148118073929739/1217048177081843743/1428074660616081468' }}">Open the OWI update</a></li>
+    </ul>
+
+    <p><strong>Keep going</strong></p>
+    <ul>
+      <li>Build in beta: <a href="studio.servly.app">Servly BetaStudio</a></li>
+      <li>Join the server: <a href="{{ discord_invite_url | default: 'https://discord.gg/uY7seawEFQ' }}">Join Discord</a> (look for the <strong>OWI</strong> channel)</li>
+    </ul>
+
+    <p class="muted">Heads‑up: to avoid spamming you, we won’t use email for updates going forward. We’ve removed you from Servly Comms/Marketing; all updates and support will live in the <strong>OWI</strong> Discord channel.</p>
+
+    <p>If you need tokens topped up or hit anything rough, reply once or ping me in Discord and I’ll sort it out.</p>
+
+    <p>- Eddie<br/>Co‑founder, Servly</p>
+  </body>
+</html>

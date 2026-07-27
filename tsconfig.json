@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "noEmitOnError": false // Continue emitting output even if there are errors
+    // "skipLibCheck": true     // Skip type checking of declaration files
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
