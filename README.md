@@ -1,8 +1,8 @@
 # Amoeba API
 
-A lean Node.js REST API boilerplate built with **Express**, **TypeScript**, and **MongoDB**.
+Backend API for Amoeba — built with **Express**, **TypeScript**, and **MongoDB**.
 
-It ships with JWT authentication (OTP + OAuth), multi-tenant companies, API keys, session management, tests, and Docker support — without the weight of a full product codebase.
+Handles authentication, organizations, users, API keys, sessions, and audit logging.
 
 **Repository:** https://github.com/kudzaimupita/amoeba-api
 

@@ -1,14 +1,15 @@
 {
   "name": "amoeba-api",
   "version": "1.0.0",
-  "description": "Amoeba API — Node Express Mongoose TypeScript REST API boilerplate",
+  "description": "Amoeba API — Node.js TypeScript REST API",
   "main": "dist/index.js",
-  "bin": "bin/createNodetsApp.cjs",
-  "repository": "https://github.com/amoeba-api/amoeba-api.git",
-  "bugs": {
-    "url": "https://github.com/saisilinus/node-express-mongoose-typescript-boilerplate/issues"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kudzaimupita/amoeba-api.git"
   },
-  "author": "linus wafula saisi <saisilinus.work@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/kudzaimupita/amoeba-api/issues"
+  },
   "license": "MIT",
   "scripts": {
     "start": "node dist/index.js",
@@ -39,26 +40,12 @@
     "commit": "git add -A && cz"
   },
   "keywords": [
-    "node",
-    "typescript",
-    "node.js",
-    "boilerplate",
-    "generator",
+    "amoeba",
     "express",
-    "rest",
-    "api",
+    "typescript",
     "mongodb",
-    "mongoose",
-    "es6",
-    "es7",
-    "es8",
-    "es9",
-    "jest",
-    "docker",
-    "passport",
-    "joi",
-    "eslint",
-    "prettier"
+    "rest",
+    "api"
   ],
   "devDependencies": {
     "@commitlint/cli": "^16.2.3",

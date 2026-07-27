@@ -9,5 +9,5 @@ export const checkCompanyPlanQuota = (
   _operation: string,
   _options?: QuotaCheckOptions
 ) => {
-  // Boilerplate: extend here when plan limits are needed.
+  // Extend here when plan limits are needed.
 };
