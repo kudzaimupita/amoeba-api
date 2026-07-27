@@ -36,7 +36,13 @@ export const getAdminUsers = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const getUsers = catchAsync(async (req: Request, res: Response) => {
-  if (!req.user.isSystemUser && !checkPermission('readList', 'user', req.user.permissions)) {
+  const isApiKeyAuth = Boolean((req.user as any)?.isApiKeyAuth);
+
+  if (
+    !isApiKeyAuth &&
+    !req.user.isSystemUser &&
+    !checkPermission('readList', 'user', req.user.permissions || [])
+  ) {
     throw new ApiError(httpStatus.FORBIDDEN, 'Insufficient permissions');
   }
   const filter = pick(req.query, ['name', 'email', 'isDeactivated']);

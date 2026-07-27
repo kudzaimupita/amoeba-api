@@ -1,0 +1,3193 @@
+{
+  "info": {
+    "name": "Amoeba API",
+    "description": "Complete Postman collection for Amoeba API mounted routes.\n\n1. Set `baseUrl` (default http://localhost:3001)\n2. Run **Register (TEST_EMAIL bypass)** or **Login** to populate `accessToken` and `refreshToken`\n3. Protected routes require both Authorization and refreshtoken headers",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "testEmail",
+      "value": "test@example.com"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "companyId",
+      "value": ""
+    },
+    {
+      "key": "apiKeyId",
+      "value": ""
+    },
+    {
+      "key": "apiKey",
+      "value": ""
+    },
+    {
+      "key": "otpDocId",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "tokenId",
+      "value": ""
+    },
+    {
+      "key": "sessionId",
+      "value": ""
+    },
+    {
+      "key": "activityLogId",
+      "value": ""
+    },
+    {
+      "key": "trackingSessionId",
+      "value": ""
+    },
+    {
+      "key": "anonymousId",
+      "value": "anon-123"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (TEST_EMAIL bypass)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Uses TEST_EMAIL env bypass when email matches server TEST_EMAIL."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (TEST_EMAIL bypass)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request Register (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"user@example.com\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm Register (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/confirm-register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "confirm-register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pin\": 123456,\n  \"docId\": \"{{otpDocId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Request Login (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/request-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "request-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirm Login (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/confirm-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "confirm-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pin\": 123456,\n  \"docId\": \"{{otpDocId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "reset-password"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{resetToken}}"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NewPass1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Resend Login OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/resend-request-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "resend-request-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"docId\": \"{{otpDocId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "change-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password1\",\n  \"newPassword\": \"Password2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Linked Providers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/linked-providers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "linked-providers"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Link OAuth Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/link-oauth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "link-oauth"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"google\",\n  \"code\": \"oauth-code\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Unlink OAuth Provider",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/unlink-oauth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "unlink-oauth",
+                "google"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Google OAuth Start",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Browser redirect flow."
+          }
+        },
+        {
+          "name": "Google OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/google/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "google",
+                "callback"
+              ]
+            },
+            "description": "Browser redirect callback."
+          }
+        },
+        {
+          "name": "GitHub OAuth Start",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/github",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "github"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "GitHub OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/github/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "github",
+                "callback"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "GitLab OAuth (501)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/gitlab",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "gitlab"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Bitbucket OAuth (501)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/bitbucket",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "bitbucket"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Figma OAuth Initiate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/figma/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "figma",
+                "initiate"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Figma OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/figma/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "figma",
+                "callback"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Figma OAuth Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/figma/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "figma",
+                "status"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Figma Disconnect",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/figma/disconnect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "figma",
+                "disconnect"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Claude OAuth Initiate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/claude/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "claude",
+                "initiate"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Claude OAuth Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/claude/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "claude",
+                "status"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Claude Disconnect",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/claude/disconnect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "claude",
+                "disconnect"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atlassian OAuth Initiate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/atlassian/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "atlassian",
+                "initiate"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atlassian OAuth Callback",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/atlassian/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "atlassian",
+                "callback"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atlassian OAuth Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/atlassian/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "atlassian",
+                "status"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atlassian Disconnect",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/auth/atlassian/disconnect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "atlassian",
+                "disconnect"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Invite User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invite@example.com\",\n  \"name\": \"Invited User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "User Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users/analytics",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users",
+                "analytics"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Fix User Acceptance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users/{{userId}}/fix-acceptance",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users",
+                "{{userId}}",
+                "fix-acceptance"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "item": [
+        {
+          "name": "Create / Store Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Company\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Plans (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "plans"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Amoeba Labs\",\n  \"industry\": \"Software\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/initiate-payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "initiate-payment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Top Up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/top-up",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "top-up"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/transactions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "transactions"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Change Plans",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/change-plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "change-plans"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Cancel Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/cancel-plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "cancel-plan"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Payment Webhook Verify",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/companies/webhook/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "webhook",
+                "verify"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Activity Logs",
+      "item": [
+        {
+          "name": "List Activity Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/activity-logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "activity-logs"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Activity Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/activity-logs/{{activityLogId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "activity-logs",
+                "{{activityLogId}}"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Beta Users",
+      "item": [
+        {
+          "name": "Join Waitlist (public)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/join-waitlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "join-waitlist"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"beta@example.com\",\n  \"firstName\": \"Beta\",\n  \"lastName\": \"User\",\n  \"company\": \"Acme\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Check Whitelist Status (public)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/check-status/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "check-status",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Create Beta User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"beta@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List Beta Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Waitlist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/waitlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "waitlist"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Whitelisted",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/whitelisted",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "whitelisted"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Waitlist Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "stats"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Whitelist User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/whitelist/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "whitelist",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Remove Whitelist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/remove-whitelist/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "remove-whitelist",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete Beta User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Test Early Access Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/beta-users/test-early-access-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "beta-users",
+                "test-early-access-email"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"beta@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tokens",
+      "item": [
+        {
+          "name": "List Tokens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "refresh"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/{{tokenId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "{{tokenId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Token Stats (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "stats"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Cleanup Expired Tokens (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/cleanup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "cleanup"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "logout"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Blacklist Tokens",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/blacklist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "blacklist"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tokenIds\": [\n    \"{{tokenId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete Many Tokens",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tokens/delete-many",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tokens",
+                "delete-many"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filter\": {\n    \"type\": \"refresh\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Keys",
+      "item": [
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/api-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My API Key\",\n  \"permission\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.tokens) {",
+                  "  pm.collectionVariables.set('accessToken', json.tokens.access.token);",
+                  "  pm.collectionVariables.set('refreshToken', json.tokens.refresh.token);",
+                  "}",
+                  "if (json.user) {",
+                  "  const user = json.user._doc || json.user;",
+                  "  pm.collectionVariables.set('userId', user.id || user._id);",
+                  "  const company = user.company;",
+                  "  if (company) pm.collectionVariables.set('companyId', company._id || company.id || company);",
+                  "}",
+                  "if (json.tokenId) pm.collectionVariables.set('otpDocId', json.tokenId);",
+                  "if (json.data?.key) pm.collectionVariables.set('apiKey', json.data.key);",
+                  "if (json.data?.id) pm.collectionVariables.set('apiKeyId', json.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List API Keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/api-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get API Key",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/api-keys/{{apiKeyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys",
+                "{{apiKeyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Update API Key",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/api-keys/{{apiKeyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys",
+                "{{apiKeyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Renamed Key\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Delete API Key",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/api-keys/{{apiKeyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "api-keys",
+                "{{apiKeyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Use API Key (example)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "users"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "List Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/account/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "sessions"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Revoke Session",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/account/sessions/{{sessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "account",
+                "sessions",
+                "{{sessionId}}"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin List Companies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "companies"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Create Company Query",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "companies"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Get Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin List Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Get Waitlist",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/get-waitlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "get-waitlist"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Get Whitelisted",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/get-whitelisted",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "get-whitelisted"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Waitlist Stats",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "stats"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Whitelist Email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/whitelist/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "whitelist",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Remove Whitelist",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/remove-whitelist/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "remove-whitelist",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Delete Waitlist User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/delete/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "delete",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Admin Check Status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/admin/waitlist/check-status/beta@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "waitlist",
+                "check-status",
+                "beta@example.com"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Session Tracking",
+      "item": [
+        {
+          "name": "Get or Create Session by IP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/session/by-ip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "session",
+                "by-ip"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Start Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "start"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"anonymousId\": \"anon-123\",\n  \"landingPage\": \"/\",\n  \"referrer\": \"https://example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Record Event",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/event",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "event"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{trackingSessionId}}\",\n  \"event\": \"page_view\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Save Data Backup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/backup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "backup"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{trackingSessionId}}\",\n  \"data\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Data Backup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/backup/{{trackingSessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "backup",
+                "{{trackingSessionId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Clear Data Backup",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/backup/{{trackingSessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "backup",
+                "{{trackingSessionId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/session/{{trackingSessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "session",
+                "{{trackingSessionId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get User Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/user/{{anonymousId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "user",
+                "{{anonymousId}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get Sessions by IP",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/ip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "ip"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Dwell Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/tracking/analytics/dwell",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "tracking",
+                "analytics",
+                "dwell"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Docs (development only)",
+      "item": [
+        {
+          "name": "Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/docs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "docs"
+              ]
+            },
+            "description": "Only available when NODE_ENV=development"
+          }
+        }
+      ]
+    },
+    {
+      "name": "API v1 Mirror",
+      "item": [
+        {
+          "name": "Health (mirror)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "refreshtoken",
+                "value": "{{refreshToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "/api/v1 mirrors /v1 routes"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -14,7 +14,7 @@ import * as apiKeyService from '../apiKeys/apiKey.service';
 // @ts-nocheck
 /* eslint-disable prettier/prettier */
 /* eslint-disable import/prefer-default-export */
-export const checkPermission = (operationType: string, resource: string, permissions: string[]): boolean => {
+export const checkPermission = (operationType: string, resource: string, permissions: string[] = []): boolean => {
   const permissionKey: string = `${operationType}-${resource}`;
 
   // Check for admin permissions that bypass specific permission checks

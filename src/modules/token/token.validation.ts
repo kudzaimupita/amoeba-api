@@ -1,10 +1,13 @@
 import Joi from 'joi';
 import { objectId } from '../../utils/validate/custom.validation';
+import tokenTypes from './token.types';
+
+const tokenTypeValues = Object.values(tokenTypes);
 
 export const getTokens = {
   query: Joi.object().keys({
     user: Joi.string().custom(objectId),
-    type: Joi.string().valid('REFRESH', 'RESET_PASSWORD', 'VERIFY_EMAIL', 'PIN', 'ACCESS'),
+    type: Joi.string().valid(...tokenTypeValues),
     blacklisted: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer().min(1).max(100),
@@ -38,7 +41,7 @@ export const deleteManyTokens = {
     filter: Joi.object()
       .keys({
         user: Joi.string().custom(objectId),
-        type: Joi.string().valid('REFRESH', 'RESET_PASSWORD', 'VERIFY_EMAIL', 'PIN'),
+        type: Joi.string().valid(...tokenTypeValues),
         blacklisted: Joi.boolean(),
         expires: Joi.object().keys({
           $lt: Joi.date(),

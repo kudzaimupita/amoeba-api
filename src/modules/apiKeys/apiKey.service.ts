@@ -78,7 +78,7 @@ export const validateApiKey = async (plainKey: string): Promise<IApiKeyDoc | nul
     const apiKey = await ApiKey.findOne({ key: hashedKey })
         .select('+key')
         .populate('company');
-    console.log(hashedKey, apiKey)
+
     if (!apiKey) {
         return null;
     }

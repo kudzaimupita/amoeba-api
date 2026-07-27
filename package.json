@@ -22,6 +22,7 @@
     "dev:gateway": "cd apps/gateway && go run .",
     "dev:edge": "cd apps/edge && go run .",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest -i --colors --verbose --detectOpenHandles",
+    "test:ci": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --ci --runInBand --forceExit --coverage",
     "test:unit": "cross-env NODE_OPTIONS=--experimental-vm-modules jest -i --testPathPattern=src/ --colors --verbose",
     "test:integration": "cross-env NODE_OPTIONS=--experimental-vm-modules jest -i --testPathPattern=tests/integration --colors --verbose",
     "test:ts": "cross-env NODE_OPTIONS=--experimental-vm-modules jest -i --colors --verbose --detectOpenHandles -- 'ts$'",

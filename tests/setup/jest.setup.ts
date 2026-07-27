@@ -4,6 +4,8 @@ jest.mock('../../src/modules/comms/internal', () =>
     sendWelcome: jest.fn().mockResolvedValue(undefined),
     sendPasswordResetNotification: jest.fn().mockResolvedValue(undefined),
     sendLoginNotificationEmail: jest.fn().mockResolvedValue(undefined),
+    sendUserInviteEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordUpdateNotificationEmail: jest.fn().mockResolvedValue(undefined),
   }))
 );
 

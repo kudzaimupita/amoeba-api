@@ -19,7 +19,7 @@ export const getCompanies = {
 };
 export const updateCompany = {
   params: Joi.object().keys({
-    userId: Joi.required().custom(objectId),
+    companyId: Joi.string().custom(objectId),
   }),
   body: Joi.object()
     .keys({
